@@ -1,54 +1,33 @@
 const express = require('express');
+const router = express.Router();
 const Message = require('../models/Message');
-const Conversation = require('../models/Conversation');
 const auth = require('../middleware/auth');
 
-const router = express.Router();
-
-router.post('/', auth, async (req, res) => {
+// Get messages for a conversation
+router.get('/:conversationId', auth, async (req, res) => {
     try {
-        const { senderId, recipientId, content } = req.body;
-        const message = new Message({ senderId, recipientId, content });
-        await message.save();
-        res.status(201).json({ message: 'Message sent successfully' });
+        const messages = await Message.find({ conversationId: req.params.conversationId })
+            .sort({ timestamp: 1 });
+        res.json(messages);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ message: error.message });
     }
 });
 
-router.get('/conversation/:userId', auth, async (req, res) => {
-    try {
-        const messages = await Message.find({
-            $or: [
-                { senderId: req.params.userId },
-                { recipientId: req.params.userId }
-            ]
-        }).sort('timestamp');
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-})
+// Send a new message
+router.post('/', auth, async (req, res) => {
+    const message = new Message({
+        conversationId: req.body.conversationId,
+        senderId: req.body.senderId,
+        content: req.body.content
+    });
 
-router.get('/conversations', auth, async (req, res) => {
     try {
-      const messages = await Message.find({
-        $or: [{ sender: req.user.id }, { recipient: req.user.id }]
-      }).sort('-timestamp');
-  
-      const conversations = messages.reduce((acc, message) => {
-        const conversationPartnerId = message.sender.toString() === req.user.id ? 
-          message.recipient.toString() : message.sender.toString();
-        
-        if (!acc[conversationPartnerId]) {
-          acc[conversationPartnerId] = message;
-        }
-        return acc;
-      }, {});
-  
-      res.json(Object.values(conversations));
+        const newMessage = await message.save();
+        res.status(201).json(newMessage);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching conversations', error: error.message });
+        res.status(400).json({ message: error.message });
     }
-  });
+});
 
 module.exports = router;

@@ -25,7 +25,12 @@ passport.use(new LocalStrategy(
 ));
 
 const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: (req) => {
+    if (req.body && req.body.token) {
+      return req.body.token;
+    }
+    return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  },
   secretOrKey: process.env.JWT_SECRET
 };
 
