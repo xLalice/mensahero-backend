@@ -2,12 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('./src/config/passport');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use(cors({
   origin: 'http://localhost:5173', // Allow requests from this origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
