@@ -17,9 +17,6 @@ router.get('/:conversationId', auth, async (req, res) => {
 
 // Send a new message
 router.post('/', auth, async (req, res) => {
-
-    
-
     const message = new Message({
         conversationId: req.body.conversationId,
         senderId: req.body.senderId,

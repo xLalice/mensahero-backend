@@ -67,6 +67,7 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
+
 // Get user by ID
 router.get('/:id', auth, async (req, res) => {
   try {
@@ -82,47 +83,25 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Update user by ID
-router.put('/:id', auth, async (req, res) => {
+router.put('/:userId', auth, async (req, res) => {
   try {
-    const { username, email, profilePicture, bio } = req.body;
-
-    const userFields = {};
-    if (username) userFields.username = username;
-    if (email) userFields.email = email;
-    if (profilePicture) userFields.profilePicture = profilePicture;
-    if (bio) userFields.bio = bio;
-
-    let user = await User.findById(req.params.id);
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { $set: req.body },
+      { new: true }
+    ).select('-password');
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    if (username && username !== user.username) {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username is already taken' });
-      }
-    }
-
-    if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email is already in use' });
-      }
-    }
-
-    user = await User.findByIdAndUpdate(
-      req.params.id,
-      { $set: userFields },
-      { new: true }
-    ).select('-password');
-
     res.json(user);
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+
 
 // Get all users
 router.get('/', async (req, res) => {
