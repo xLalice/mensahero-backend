@@ -4,6 +4,7 @@ const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const auth = require('../middleware/auth');
 
+// Get conversation
 router.get('/:conversationId', auth, async (req, res) => {
 	try {
 		const conversation = await Conversation.findById(req.params.conversationId);
@@ -15,19 +16,18 @@ router.get('/:conversationId', auth, async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 });
-
+// Get conversations
 router.get('/user/:currentUserId', auth, async (req, res) => {
 	try {
 		const conversations = await Conversation.find({ participants: req.params.currentUserId })
 			.populate('lastMessage')
 			.sort({ 'lastMessage.timestamp': -1 });
-		console.log(conversations)
 		res.json(conversations);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
 });
-
+// Create conversation
 router.post('/', auth, async (req, res) => {
 	const { participants } = req.body;  
 
