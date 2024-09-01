@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int             @id @default(autoincrement())
+  username     String @unique
+  email        String @unique
+  password     String
+  profilePic   String           @default("https://i.pinimg.com/originals/f1/0f/f7/f10ff70a7155e5ab666bcdd1b45b726d.jpg")
+  lastActive   DateTime         @default(now())
+  createdAt    DateTime         @default(now())
+  messages     Message[]        @relation("UserMessages")
+  conversations Conversation[]  @relation("UserConversations")
+}
+
+model Message {
+  id              Int          @id @default(autoincrement())
+  conversationId  Int
+  conversation    Conversation  @relation(name: "ConversationMessages", fields: [conversationId], references: [id])
+  senderId        Int
+  sender          User          @relation(name: "UserMessages", fields: [senderId], references: [id])
+  content         String
+  messageType     MessageType   @default(text)
+  timestamp       DateTime      @default(now())
+  lastMessageOf   Conversation? @relation(name: "ConversationLastMessage")
+}
+
+model Conversation {
+  id              Int          @id @default(autoincrement())
+  participants    User[]       @relation(name: "UserConversations")
+  lastMessageId   Int? @unique
+  lastMessage     Message?      @relation(name: "ConversationLastMessage", fields: [lastMessageId], references: [id])
+  messages        Message[]     @relation(name: "ConversationMessages")
+  createdAt       DateTime      @default(now())
+}
+
+enum MessageType {
+    text
+    image
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String   
+  expiresAt   DateTime
+}
