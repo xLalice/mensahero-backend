@@ -11,8 +11,6 @@ const router = express.Router();
 // Send a new message
 router.post('/', auth, upload.single('image'), async (req, res) => {
 
-    console.log('Received message request:', req.body);
-    console.log('File:', req.file);
 
     try {
         const { conversationId, senderId, content } = req.body;
@@ -26,7 +24,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
             return res.status(404).json({ message: 'Conversation not found' });
         }
 
-        const isParticipant = conversation.participants.some(participant => participant.id === parseInt(senderId));
+        const isParticipant = conversation.participants.some(participant => participant.userId === parseInt(senderId));
         if (!isParticipant) {
             return res.status(403).json({ message: 'User is not part of this conversation' });
         }

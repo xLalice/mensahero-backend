@@ -36,8 +36,8 @@ app.use(expressSession({
     {
 
     }
-  )
-
+  ),
+  rolling: true
 }))
 
 app.use(express.json());

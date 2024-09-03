@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
+
+  await prisma.user.deleteMany({});
   const users = [
     {
       username: "john_doe",

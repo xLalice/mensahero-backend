@@ -9,14 +9,14 @@ datasource db {
 
 model User {
   id           Int             @id @default(autoincrement())
-  username     String @unique
-  email        String @unique
+  username     String           @unique
+  email        String           @unique
   password     String
   profilePic   String           @default("https://i.pinimg.com/originals/f1/0f/f7/f10ff70a7155e5ab666bcdd1b45b726d.jpg")
   lastActive   DateTime         @default(now())
   createdAt    DateTime         @default(now())
   messages     Message[]        @relation("UserMessages")
-  conversations Conversation[]  @relation("UserConversations")
+  participants Participant[]    // New relation to the join table
 }
 
 model Message {
@@ -24,7 +24,7 @@ model Message {
   conversationId  Int
   conversation    Conversation  @relation(name: "ConversationMessages", fields: [conversationId], references: [id])
   senderId        Int
-  sender          User          @relation(name: "UserMessages", fields: [senderId], references: [id])
+  sender          User          @relation(name: "UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
   content         String
   messageType     MessageType   @default(text)
   timestamp       DateTime      @default(now())
@@ -33,21 +33,30 @@ model Message {
 
 model Conversation {
   id              Int          @id @default(autoincrement())
-  participants    User[]       @relation(name: "UserConversations")
-  lastMessageId   Int? @unique
+  participants    Participant[] // New relation to the join table
+  lastMessageId   Int?          @unique
   lastMessage     Message?      @relation(name: "ConversationLastMessage", fields: [lastMessageId], references: [id])
   messages        Message[]     @relation(name: "ConversationMessages")
   createdAt       DateTime      @default(now())
 }
 
+model Participant { 
+  userId          Int
+  conversationId  Int
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, conversationId]) 
+}
+
 enum MessageType {
-    text
-    image
+  text
+  image
 }
 
 model Session {
   id        String   @id
   sid       String   @unique
   data      String   
-  expiresAt   DateTime
+  expiresAt DateTime
 }

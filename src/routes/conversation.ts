@@ -30,7 +30,6 @@ router.get('/:conversationId', auth, async (req, res) => {
 		if (!conversation) {
 			return res.status(404).json({ message: 'Conversation not found' });
 		}
-		console.log("Conversation: ", conversation);
 		const participantIds = conversation.participants.map(participant => participant.userId);
 		if (!participantIds.includes(userId)) {
 			return res.status(401).json({ message: 'User not part of conversation' });
@@ -88,7 +87,6 @@ router.get('/user/:currentUserId', auth, async (req, res) => {
                 lastMessage: conversation.lastMessage,
             };
         });
-		console.log(formattedConversations);
         res.json(formattedConversations);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -98,7 +96,6 @@ router.get('/user/:currentUserId', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
 	const participants = req.body.participants.map((item: any) => parseInt(item));
-	console.log("Create convo");
   
 	if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
   
@@ -133,11 +130,9 @@ router.post('/', auth, async (req, res) => {
 	  });
   
 	  if (existingConversation) {
-		console.log("Existing conversation found");
 		return res.status(200).json(existingConversation);
 	  }
   
-	  console.log("Creating new conversation");
   
 	  const newConversation = await prisma.conversation.create({
 		data: {
