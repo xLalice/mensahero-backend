@@ -15,7 +15,11 @@ export function initializeWebSocket(server: any) {
   });
 
   const broadcastOnlineUsers = () => {
-    io.emit("update_online_users", Array.from(onlineUsers.keys()));
+    const onlineUserMap: { [userId: number]: string } = {};
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      onlineUserMap[userId] = socketId;
+    }
+    io.emit('update_online_users', onlineUserMap);
   };
 
   io.on("connection", (socket) => {
@@ -51,7 +55,6 @@ export function initializeWebSocket(server: any) {
       }
 
       if (disconnectedUserId !== undefined) {
-        // Broadcast the updated list of online users
         broadcastOnlineUsers();
       }
     });

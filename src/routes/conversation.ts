@@ -84,7 +84,9 @@ router.get('/user/:currentUserId', auth, async (req, res) => {
                 id: conversation.id,
                 username: otherParticipant?.user.username,
                 profilePic: otherParticipant?.user.profilePic,
+				userId: otherParticipant?.user.id,
                 lastMessage: conversation.lastMessage,
+				
             };
         });
         res.json(formattedConversations);
@@ -92,6 +94,7 @@ router.get('/user/:currentUserId', auth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 
 router.post('/', auth, async (req, res) => {

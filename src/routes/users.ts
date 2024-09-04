@@ -102,6 +102,7 @@ router.put("/:userId", auth, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
+      where: {NOT: {id: (req.user as any).id}},
       select: { id: true  , profilePic: true, username: true },
     });
     res.json(users);
