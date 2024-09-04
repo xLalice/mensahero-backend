@@ -14,6 +14,10 @@ export function initializeWebSocket(server: any) {
     },
   });
 
+  const broadcastOnlineUsers = () => {
+    io.emit("update_online_users", Array.from(onlineUsers.keys()));
+  };
+
   io.on("connection", (socket) => {
     console.log("New client connected", socket.id);
 
@@ -21,25 +25,34 @@ export function initializeWebSocket(server: any) {
       console.log(`User ${userId} connected with socket ID ${socket.id}`);
       onlineUsers.set(userId, socket.id);
       console.log('Online Users after user connected:', onlineUsers);
+
       await prisma.user.update({
         where: { id: parseInt(userId) },
         data: { lastActive: new Date() },
       });
-      io.emit("user_status_change", { userId, status: "online" });
+
+      
+      broadcastOnlineUsers();
     });
-    
 
     socket.on("disconnect", async () => {
+      let disconnectedUserId;
+
       for (const [userId, socketId] of onlineUsers.entries()) {
         if (socketId === socket.id) {
+          disconnectedUserId = userId;
           onlineUsers.delete(userId);
           await prisma.user.update({
             where: { id: parseInt(userId) },
             data: { lastActive: new Date() },
           });
-          io.emit("user_status_change", { userId, status: "offline" });
           break;
         }
+      }
+
+      if (disconnectedUserId !== undefined) {
+        // Broadcast the updated list of online users
+        broadcastOnlineUsers();
       }
     });
 
@@ -47,7 +60,7 @@ export function initializeWebSocket(server: any) {
       const { conversationId, senderId, content, timestamp, messageType } = data;
     
       let participants;
-    
+
       if (conversationCache.has(conversationId)) {
         participants = conversationCache.get(conversationId);
       } else {
@@ -88,7 +101,6 @@ export function initializeWebSocket(server: any) {
         callback({ status: messageSent ? 'success' : 'failed', message: messageSent ? 'Message successfully processed' : 'Message failed to send' });
       }
     });
-    
   });
 
   return io;
