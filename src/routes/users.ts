@@ -3,8 +3,120 @@ import upload from "../middleware/multer";
 import auth from "../middleware/auth";
 import prisma from "../config/prisma";
 import {imageUploader} from "../config/cloudinary";
+import { connect } from "http2";
 
 const router = express.Router();
+
+router.get("/friends", auth, async (req, res) => {
+ 
+  try {
+    const userId = (req.user as any).id;
+
+    const userWithFriends = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        friends: {
+          select: {
+            id: true,
+            username: true,
+            profilePic: true,
+          },
+        },
+        friendOf: {
+          select: {
+            id: true,
+            username: true,
+            profilePic: true,
+          },
+        },
+      },
+    });
+
+    if (!userWithFriends) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const allFriends = [...userWithFriends.friends, ...userWithFriends.friendOf];
+    const uniqueFriends = Array.from(new Set(allFriends.map(f => f.id)))
+      .map(id => allFriends.find(f => f.id === id));
+
+    res.json({ friends: uniqueFriends });
+  } catch (error) {
+    console.error("Error fetching friends:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+
+router.get('/potential-friends', auth, async (req, res) => {
+  try {
+    const userId = (req.user as any).id;
+
+    const users = await prisma.user.findMany({
+      where: {
+        id: { not: userId }, 
+        AND: [
+          {
+            friends: {
+              none: {
+                id: userId, 
+              },
+            },
+          },
+          {
+            friendOf: {
+              none: {
+                id: userId,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        profilePic: true,
+      },
+    });
+
+    if (!users.length) {
+      return res.status(404).json({ error: "No potential friends found" });
+    }
+``
+    res.json({ potentialFriends: users });
+  } catch (error) {
+    console.error("Error fetching potential friends:", error);
+    res.status(500).json({ error: 'Error fetching potential friends' });
+  }
+});
+
+router.post('/add-friend/', auth, async (req, res) => {
+  try {
+    const userId = (req.user as any).id;
+    const friendId = req.body.friendId;
+
+    if (userId === friendId) {
+      return res.status(400).json({ error: "You can't add yourself as a friend" });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        friends: {
+          connect: { id: friendId }
+        },
+      },
+      include: {
+        friends: true
+      }
+    });
+
+    res.json({ message: "Friend added successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error adding friend:", error);
+    res.status(500).json({ error: 'Error adding friend' });
+  }
+});
 
 router.put(
   "/:id/profile-picture",
@@ -99,7 +211,7 @@ router.put("/:userId", auth, async (req, res) => {
 });
 
 // Get all users
-router.get("/", async (req, res) => {
+router.get("/", auth, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       where: {NOT: {id: (req.user as any).id}},
@@ -111,5 +223,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+
 
 export default router;

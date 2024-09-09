@@ -16,7 +16,9 @@ model User {
   lastActive   DateTime         @default(now())
   createdAt    DateTime         @default(now())
   messages     Message[]        @relation("UserMessages")
-  participants Participant[]    // New relation to the join table
+  friends      User[]           @relation("UserFriends")
+  friendOf     User[]           @relation("UserFriends")
+  participants Participant[]   
 }
 
 model Message {

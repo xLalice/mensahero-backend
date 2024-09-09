@@ -10,7 +10,17 @@ router.get('/:conversationId', auth, async (req, res) => {
 		const conversation = await prisma.conversation.findUnique({
 			where: { id: parseInt(req.params.conversationId) },
 			include: {
-				participants: true,
+				participants: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								profilePic: true
+							}
+						}
+					}
+				},
 				messages: {
 					include: {
 						sender: {
@@ -35,9 +45,21 @@ router.get('/:conversationId', auth, async (req, res) => {
 			return res.status(401).json({ message: 'User not part of conversation' });
 		}
 		
-		
+		const participants = conversation.participants.map(p => (p.user));
 
-		res.json(conversation);
+
+		console.log("Conversation", {conversation: {
+			id: conversation.id,
+			participants,
+			messages: conversation.messages
+		}});
+		
+		res.json({
+			id: conversation.id,
+			participants,
+			messages: conversation.messages,
+		});
+
 	} catch (error: any) {
 		res.status(500).json({ message: error.message });
 	}
