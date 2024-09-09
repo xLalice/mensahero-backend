@@ -3,7 +3,6 @@ import upload from "../middleware/multer";
 import auth from "../middleware/auth";
 import prisma from "../config/prisma";
 import {imageUploader} from "../config/cloudinary";
-import { connect } from "http2";
 
 const router = express.Router();
 
