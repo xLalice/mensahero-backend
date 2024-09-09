@@ -35,11 +35,13 @@ model Message {
 
 model Conversation {
   id              Int          @id @default(autoincrement())
-  participants    Participant[] // New relation to the join table
+  participants    Participant[] 
   lastMessageId   Int?          @unique
   lastMessage     Message?      @relation(name: "ConversationLastMessage", fields: [lastMessageId], references: [id])
   messages        Message[]     @relation(name: "ConversationMessages")
   createdAt       DateTime      @default(now())
+  groupImage      String?
+  groupName       String?
 }
 
 model Participant { 

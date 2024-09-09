@@ -19,32 +19,26 @@ export function initializeWebSocket(server: any) {
     for (const [userId, socketId] of onlineUsers.entries()) {
       onlineUserMap[userId] = socketId;
     }
-    io.emit('update_online_users', onlineUserMap);
+    io.emit("update_online_users", onlineUserMap);
   };
 
   io.on("connection", (socket) => {
     console.log("New client connected", socket.id);
 
     socket.on("user_connected", async (userId) => {
-      console.log(`User ${userId} connected with socket ID ${socket.id}`);
       onlineUsers.set(userId, socket.id);
-      console.log('Online Users after user connected:', onlineUsers);
 
       await prisma.user.update({
         where: { id: parseInt(userId) },
         data: { lastActive: new Date() },
       });
 
-      
       broadcastOnlineUsers();
     });
 
-    socket.on("disconnect", async () => {
-      let disconnectedUserId;
-
+    socket.on("user_disconnect", async (userId) => {
       for (const [userId, socketId] of onlineUsers.entries()) {
         if (socketId === socket.id) {
-          disconnectedUserId = userId;
           onlineUsers.delete(userId);
           await prisma.user.update({
             where: { id: parseInt(userId) },
@@ -54,14 +48,13 @@ export function initializeWebSocket(server: any) {
         }
       }
 
-      if (disconnectedUserId !== undefined) {
-        broadcastOnlineUsers();
-      }
+      broadcastOnlineUsers();
     });
 
-    socket.on('send_message', async (data, callback) => {
-      const { conversationId, senderId, content, timestamp, messageType } = data;
-    
+    socket.on("send_message", async (data, callback) => {
+      const { conversationId, senderId, content, timestamp, messageType } =
+        data;
+
       let participants;
 
       if (conversationCache.has(conversationId)) {
@@ -71,27 +64,29 @@ export function initializeWebSocket(server: any) {
           where: { id: conversationId },
           include: { participants: true },
         });
-    
+
         participants = conversation?.participants;
         conversationCache.set(conversationId, participants);
       }
-    
+
       let messageSent = false;
 
       console.log("Participants: ", participants);
-    
+
       participants.forEach((participant: { userId: number }) => {
-        console.log("ID: ", participant.userId)
+        console.log("ID: ", participant.userId);
         if (participant.userId !== senderId) {
           const recipientSocketId = onlineUsers.get(participant.userId);
-          console.log(`Recipient ID: ${participant.userId}, Recipient Socket ID: ${recipientSocketId}`);
+          console.log(
+            `Recipient ID: ${participant.userId}, Recipient Socket ID: ${recipientSocketId}`
+          );
           if (recipientSocketId) {
             io.to(recipientSocketId).emit("receive_message", {
               conversationId,
               senderId,
               content,
               timestamp,
-              messageType
+              messageType,
             });
             messageSent = true;
           } else {
@@ -99,9 +94,14 @@ export function initializeWebSocket(server: any) {
           }
         }
       });
-    
+
       if (callback) {
-        callback({ status: messageSent ? 'success' : 'failed', message: messageSent ? 'Message successfully processed' : 'Message failed to send' });
+        callback({
+          status: messageSent ? "success" : "failed",
+          message: messageSent
+            ? "Message successfully processed"
+            : "Message failed to send",
+        });
       }
     });
   });
