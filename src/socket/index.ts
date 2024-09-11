@@ -23,7 +23,6 @@ export function initializeWebSocket(server: any) {
   };
 
   io.on("connection", (socket) => {
-    console.log("New client connected", socket.id);
 
     socket.on("user_connected", async (userId) => {
       onlineUsers.set(userId, socket.id);
@@ -71,15 +70,10 @@ export function initializeWebSocket(server: any) {
 
       let messageSent = false;
 
-      console.log("Participants: ", participants);
 
       participants.forEach((participant: { userId: number }) => {
-        console.log("ID: ", participant.userId);
         if (participant.userId !== senderId) {
           const recipientSocketId = onlineUsers.get(participant.userId);
-          console.log(
-            `Recipient ID: ${participant.userId}, Recipient Socket ID: ${recipientSocketId}`
-          );
           if (recipientSocketId) {
             io.to(recipientSocketId).emit("receive_message", {
               conversationId,
@@ -89,8 +83,6 @@ export function initializeWebSocket(server: any) {
               messageType,
             });
             messageSent = true;
-          } else {
-            console.log(`Recipient ${participant.userId} is not connected`);
           }
         }
       });
