@@ -159,7 +159,7 @@ router.get("/profile", auth, async (req, res) => {
   try {
     const user = await prisma.user.findFirst({
       where: { id: (req.user as any).id },
-      select: { password: false, username: true, profilePic: true },
+      select: { username: true, profilePic: true , email: true},
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
