@@ -47,7 +47,6 @@ router.get("/:conversationId", auth, async (req, res) => {
       (participant) => participant.userId === userId
     );
 
-	console.log("Conversation: ", conversation)
     if (!isUserInConversation) {
       return res
         .status(401)
@@ -80,7 +79,6 @@ router.get("/:conversationId", auth, async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const currentUserId = (req.user as any).id;
-    console.log(`Fetching conversations for user ID: ${currentUserId}`);
 
     const conversations = await prisma.conversation.findMany({
       where: {
@@ -110,7 +108,6 @@ router.get("/", auth, async (req, res) => {
       ],
     });
 
-    console.log(`Found ${conversations.length} conversations`);
 
     const formattedConversations = conversations.map((conversation) => {
       const otherParticipants = conversation.participants
@@ -140,7 +137,6 @@ router.get("/", auth, async (req, res) => {
       }
     });
 
-    console.log(`Formatted ${formattedConversations.length} conversations`);
     res.json(formattedConversations);
   } catch (error: any) {
     console.error("Error fetching conversations:", error.message);
@@ -151,34 +147,20 @@ router.get("/", auth, async (req, res) => {
 // Create a new conversation
 router.post("/", auth, upload.single("groupImage"), async (req, res) => {
   try {
-    console.log("Received request to create a new group chat");
 
-    // Log the raw request body
-    console.log("Request body:", req.body);
-
-    const participants = JSON.parse(req.body.participants); // Parse participants from string
+    const participants = JSON.parse(req.body.participants); 
     const groupName = req.body.groupName;
 
-    // Log parsed participants and group name
-    console.log("Parsed participants:", participants);
-    console.log("Group name:", groupName);
-
     if (!Array.isArray(participants)) {
-      console.log("Participants format is invalid, expected an array.");
       return res
         .status(400)
         .json({ message: "Participants should be an array" });
     }
 
     if (!req.user) {
-      console.log("Unauthorized request: user not authenticated");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Check if a group with the same participants already exists
-    console.log(
-      "Checking for an existing conversation with the same participants..."
-    );
     let existingConversation = await prisma.conversation.findFirst({
       where: {
         AND: [
@@ -207,7 +189,6 @@ router.post("/", auth, upload.single("groupImage"), async (req, res) => {
       },
     });
 
-    // If an existing conversation is found, check the number of participants
     if (
       existingConversation &&
       existingConversation.participants.length === participants.length
@@ -217,12 +198,8 @@ router.post("/", auth, upload.single("groupImage"), async (req, res) => {
 
     // Handle file upload
     if (!req.file) {
-      console.log("No file uploaded with the request");
       return res.status(400).json({ message: "No file uploaded" });
     }
-
-    // Log file upload details
-    console.log("File uploaded:", req.file);
 
     const result = await imageUploader(
       req.file?.buffer,
@@ -230,11 +207,6 @@ router.post("/", auth, upload.single("groupImage"), async (req, res) => {
       ""
     );
 
-    // Log image upload result
-    console.log("Image uploaded successfully:", result);
-
-    // Create the new group conversation
-    console.log("Creating new group conversation...");
     const newConversation = await prisma.conversation.create({
       data: {
         participants: {
@@ -250,12 +222,8 @@ router.post("/", auth, upload.single("groupImage"), async (req, res) => {
       },
     });
 
-    // Log the new conversation created
-    console.log("New conversation created:", newConversation);
-
     return res.status(201).json(newConversation);
   } catch (error: any) {
-    // Log error details with full stack trace
     console.error("Error creating conversation:", error);
     res.status(500).json({ message: error.message });
   }
