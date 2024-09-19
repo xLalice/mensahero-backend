@@ -4,7 +4,7 @@
   "main": "dist/server.js",
   
   "scripts": {
-    "build": "tsc && npx tailwindcss -i ./src/input.css -o ./public/css/tailwind.css",
+    "build": "tsc --build",
     "start": "node dist/server.js",
     "dev": "ts-node-dev src/server.ts"
   },

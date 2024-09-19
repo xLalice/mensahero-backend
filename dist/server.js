@@ -19,15 +19,19 @@ require('dotenv').config();
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 const PORT = process.env.PORT || 3000;
+console.log(process.env.FRONTEND_URL);
 app.use((0, cors_1.default)({
     origin: process.env.FRONTEND_URL,
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use((0, express_session_1.default)({
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: 'none',
+        secure: true
     },
     secret: process.env.SECRET || "",
     store: new PrismaSessionStore(new PrismaClient(), {}),
