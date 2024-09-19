@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeWebSocket = void 0;
+exports.initializeWebSocket = initializeWebSocket;
 const socket_io_1 = require("socket.io");
 const prisma_1 = __importDefault(require("../config/prisma"));
 require("dotenv").config();
@@ -88,4 +88,3 @@ function initializeWebSocket(server) {
     });
     return io;
 }
-exports.initializeWebSocket = initializeWebSocket;

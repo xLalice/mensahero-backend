@@ -18,10 +18,12 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
-
+console.log(process.env.FRONTEND_URL)
 app.use(cors({
   origin: process.env.FRONTEND_URL,
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(expressSession({
@@ -29,6 +31,7 @@ app.use(expressSession({
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true, 
     sameSite: 'none',
+    secure: true
   },
   secret: process.env.SECRET || "",
   store: new PrismaSessionStore(
