@@ -2,10 +2,9 @@ import express, {Request, Response, NextFunction} from "express";
 import http from "http";
 import passport from "./config/passport";
 import cors from "cors";
-import path from "path";
 import expressSession from "express-session";
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
-const { PrismaClient } = require('@prisma/client');
+import prisma from "./config/prisma";
 import {initializeWebSocket} from "./socket/index";
 import authRoutes from "./routes/auth";
 import conversationRoutes from "./routes/conversation";
@@ -18,7 +17,8 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
-console.log(process.env.FRONTEND_URL)
+
+
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
@@ -31,17 +31,18 @@ app.use(expressSession({
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true, 
     sameSite: 'none',
-    secure: true
+    secure: process.env.NODE_ENV === "production"
   },
   secret: process.env.SECRET || "",
   store: new PrismaSessionStore(
-    new PrismaClient(),
+    prisma,
     {
-
+      
     }
   ),
   rolling: true
 }))
+
 
 app.use(express.json());
 app.use(passport.initialize());
