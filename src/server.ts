@@ -31,7 +31,8 @@ app.use(expressSession({
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true, 
     sameSite: 'none',
-    secure: process.env.NODE_ENV === "production"
+    secure: process.env.NODE_ENV === "production",
+    domain: '.mensahero.netlify.app' 
   },
   secret: process.env.SECRET || "",
   store: new PrismaSessionStore(
