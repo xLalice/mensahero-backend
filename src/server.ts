@@ -32,7 +32,7 @@ app.use(expressSession({
     httpOnly: true, 
     sameSite: 'none',
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.RENDER_EXTERNAL_HOSTNAME
+    domain: process.env.DOMAIN
   },
   secret: process.env.SECRET || "",
   store: new PrismaSessionStore(
