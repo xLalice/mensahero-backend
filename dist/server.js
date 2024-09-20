@@ -31,6 +31,7 @@ app.use((0, express_session_1.default)({
         httpOnly: true,
         sameSite: 'none',
         secure: process.env.NODE_ENV === "production",
+        domain: process.env.RENDER_EXTERNAL_HOSTNAME
     },
     secret: process.env.SECRET || "",
     store: new PrismaSessionStore(prisma_1.default, {}),

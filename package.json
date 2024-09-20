@@ -1,7 +1,7 @@
 {
   "name": "mensahero-backend",
   "version": "1.0.0",
-  "main": "server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "start": "node src/server.ts",
     "build": "rimraf dist && tsc",
