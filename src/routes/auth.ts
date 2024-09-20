@@ -53,10 +53,26 @@ router.post('/login', (req, res, next) => {
 });
 
 
-router.post('/logout', function(req, res, next){
+router.post('/logout', function(req, res, next) {
   req.logout(function(err) {
-    if (err) { return next(err); }
-    res.redirect('/');
+    if (err) { 
+      return next(err); 
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        return next(err); 
+      }
+
+      res.clearCookie("connect.sid", {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production',
+      });
+
+      return res.status(200).json({ message: "Logged out successfully" });
+    });
   });
 });
 

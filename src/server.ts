@@ -32,7 +32,6 @@ app.use(expressSession({
     httpOnly: true, 
     sameSite: 'none',
     secure: process.env.NODE_ENV === "production",
-    domain: '.mensahero.netlify.app' 
   },
   secret: process.env.SECRET || "",
   store: new PrismaSessionStore(
@@ -55,13 +54,11 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/conversations', conversationRoutes);
 
-// Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).send("Sorry, that route doesn't exist.");
 });
